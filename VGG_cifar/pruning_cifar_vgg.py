@@ -201,11 +201,12 @@ def main():
     best_prec1 = 0.
     for epoch in range(args.start_epoch, args.epochs):
         #使用线性退火方式
-        m.decay_rate = max(0,float('%.4f'%(1-2*epoch/args.epochs)))
+        m.decay_rate = max(0, float('%.4f'%(1-2*epoch/args.epochs)))
         print("the decay rate now is :{}".format(m.decay_rate))
         if epoch in [args.epochs * 0.5, args.epochs * 0.75]:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.1
+        print("lr is {}".format(optimizer.param_groups["lr"]))
         train(train_loader, model, optimizer, epoch, log)
         prec1 = test(test_loader, model, log)
 
