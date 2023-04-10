@@ -39,8 +39,8 @@ parser.add_argument('--save_path', default='./logs', type=str, metavar='PATH',
 parser.add_argument('--arch', default='vgg_cifar', type=str, help='architecture to use')
 parser.add_argument('--depth', default=16, type=int, help='depth of the neural network')
 # compress rate
-parser.add_argument('--rate_norm', type=float, default=0.9, help='the remaining ratio of pruning based on Norm')
-parser.add_argument('--rate_dist', type=float, default=0.1, help='the reducing ratio of pruning based on Distance')
+parser.add_argument('--rate_norm', type=float, default=0.7, help='the remaining ratio of pruning based on Norm')
+parser.add_argument('--rate_dist', type=float, default=0.0, help='the reducing ratio of pruning based on Distance')
 
 # compress parameter
 parser.add_argument('--layer_begin', type=int, default=1, help='compress layer of model')
@@ -200,6 +200,9 @@ def main():
 
     best_prec1 = 0.
     for epoch in range(args.start_epoch, args.epochs):
+        #使用线性退火方式
+        m.decay_rate = max(0,float('%.4f'%(1-2*epoch/args.epochs)))
+        print("the decay rate now is :{}".format(m.decay_rate))
         if epoch in [args.epochs * 0.5, args.epochs * 0.75]:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.1
@@ -301,6 +304,7 @@ class Mask:
         self.similar_matrix = {}
         self.norm_matrix = {}
         self.cfg = [32, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 256, 256, 256, 'M', 256, 256, 256]
+        self.decay_rate = 1
 
     def get_codebook(self, weight_torch, compress_rate, length):
         weight_vec = weight_torch.view(length)
@@ -329,7 +333,7 @@ class Mask:
             #            threshold = norm1_sort[int (weight_torch.size()[0] * (1-compress_rate) )]
             kernel_length = weight_torch.size()[1] * weight_torch.size()[2] * weight_torch.size()[3]
             for x in range(0, len(filter_index)):
-                codebook[filter_index[x] * kernel_length: (filter_index[x] + 1) * kernel_length] = 0
+                codebook[filter_index[x] * kernel_length: (filter_index[x] + 1) * kernel_length] = self.decay_rate
 
             print("filter codebook done")
         else:
@@ -482,7 +486,7 @@ class Mask:
             kernel_length = weight_torch.size()[1] * weight_torch.size()[2] * weight_torch.size()[3]
             for x in range(0, len(similar_index_for_filter)):
                 codebook[
-                similar_index_for_filter[x] * kernel_length: (similar_index_for_filter[x] + 1) * kernel_length] = 0
+                similar_index_for_filter[x] * kernel_length: (similar_index_for_filter[x] + 1) * kernel_length] = self.decay_rate
             print("similar index done")
         else:
             pass
