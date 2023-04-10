@@ -188,7 +188,7 @@ def main():
     m.model = model
 
     m.init_mask(args.rate_norm, args.rate_dist, args.dist_type)
-    #    m.if_zero()
+    m.if_zero()
     m.do_mask()
     m.do_similar_mask()
     model = m.model

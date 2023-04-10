@@ -651,8 +651,8 @@ class Mask:
 
     def if_zero(self):
         for index, item in enumerate(self.model.parameters()):
-            if (index in self.mask_index):
-                # if index == 0:
+            # if (index in self.mask_index):
+            if index == 0:
                 a = item.data.view(self.model_length[index])
                 b = a.cpu().numpy()
 
